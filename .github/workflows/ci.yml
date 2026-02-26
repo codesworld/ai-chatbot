@@ -55,11 +55,8 @@ jobs:
         with:
           python-version: '3.10'
       - run: pip install -r requirements.txt
-      - name: Create .env
-        run: |
-          echo "OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}" >> .env
-          echo "MODEL_NAME=gpt-4o-mini" >> .env
-          echo "APP_PORT=8000" >> .env
-      - env:
+      - name: Run DeepEval tests
+        env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          MODEL_NAME: gpt-4o-mini
         run: deepeval test run tests/eval/test_llm_quality.py
