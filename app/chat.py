@@ -11,11 +11,11 @@ SYSTEM_PROMPT = (
     "Give short, clear, and helpful answers."
 )
 
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 MODEL_NAME = os.getenv("MODEL_NAME", "gpt-4o-mini")
 
 
 def get_response(message: str, session_id: str) -> str:
+    client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
     save_message(session_id, "user", message)
 
     history = get_history(session_id)

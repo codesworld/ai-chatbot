@@ -55,6 +55,12 @@ jobs:
         with:
           python-version: '3.10'
       - run: pip install -r requirements.txt
+      - name: Verify API key
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          echo "API key length: ${#OPENAI_API_KEY}"
+          python -c "import os; key=os.environ.get('OPENAI_API_KEY',''); print(f'Key starts with: {key[:7]}')"
       - name: Run DeepEval tests
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
