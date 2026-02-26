@@ -1,0 +1,65 @@
+name: AI Chatbot CI Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  unit-tests:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+      - run: pip install -r requirements.txt
+      - name: Create .env
+        run: |
+          echo "OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}" >> .env
+          echo "MODEL_NAME=gpt-4o-mini" >> .env
+          echo "APP_PORT=8000" >> .env
+      - run: pytest tests/unit/ -v
+
+  e2e-tests:
+    name: E2E Tests
+    runs-on: ubuntu-latest
+    needs: unit-tests
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+      - run: pip install -r requirements.txt
+      - run: playwright install chromium
+      - name: Create .env
+        run: |
+          echo "OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}" >> .env
+          echo "MODEL_NAME=gpt-4o-mini" >> .env
+          echo "APP_PORT=8000" >> .env
+      - name: Start application
+        run: uvicorn app.main:app --port 8000 &
+      - run: sleep 5
+      - run: pytest tests/e2e/ -v
+
+  llm-eval-tests:
+    name: DeepEval Tests
+    runs-on: ubuntu-latest
+    needs: unit-tests
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+      - run: pip install -r requirements.txt
+      - name: Create .env
+        run: |
+          echo "OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}" >> .env
+          echo "MODEL_NAME=gpt-4o-mini" >> .env
+          echo "APP_PORT=8000" >> .env
+      - env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: deepeval test run tests/eval/test_llm_quality.py
